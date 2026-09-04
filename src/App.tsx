@@ -1,6 +1,8 @@
 import { Routes, Route } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
 import { People } from './pages/People';
+import { Planets } from './pages/Planets';
+import { Starships } from './pages/Starships';
 
 export default function App() {
   return (
@@ -9,8 +11,8 @@ export default function App() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Routes>
           <Route path="/" element={<People />} />
-          <Route path="/planets" element={<div className="text-center py-12 text-slate-400">Planets View Placeholder</div>} />
-          <Route path="/starships" element={<div className="text-center py-12 text-slate-400">Starships View Placeholder</div>} />
+          <Route path="/planets" element={<Planets />} />
+          <Route path="/starships" element={<Starships />} />
         </Routes>
       </main>
     </div>
