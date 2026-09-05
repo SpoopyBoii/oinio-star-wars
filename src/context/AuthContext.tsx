@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import toast from 'react-hot-toast';
 
 interface AuthContextType {
     user: User | null;
@@ -35,7 +36,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     const signOut = async () => {
-        await supabase.auth.signOut();
+        try {
+            const { error } = await supabase.auth.signOut();
+            if (error) throw error;
+            toast.success('Successfully logged out of Datapad.');
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to sign out. Check connection.');
+        }
     };
 
     return (

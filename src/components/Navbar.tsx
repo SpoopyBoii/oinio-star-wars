@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Users, Globe, Rocket } from 'lucide-react';
+import { Menu, X, Users, Globe, Rocket, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { AuthModal } from './AuthModal';
 
@@ -42,20 +42,21 @@ export const Navbar: React.FC = () => {
                         <div className="flex items-center">
                             {user ? (
                                 <div className="flex items-center space-x-4">
-                                    <span className="text-xs text-slate-400 hidden sm:inline">
+                                    <span className="text-xs text-slate-400 hidden sm:inline-block truncate max-w-[150px]">
                                         {user.email}
                                     </span>
                                     <button
                                         onClick={() => signOut()}
-                                        className="rounded-full border border-slate-700 bg-slate-800 px-5 py-2 text-xs font-medium text-slate-200 hover:bg-slate-700 transition-colors"
+                                        className="flex items-center space-x-2 rounded-full border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
                                     >
-                                        Sign Out
+                                        <span>Sign Out</span>
+                                        <LogOut size={16} />
                                     </button>
                                 </div>
                             ) : (
                                 <button
                                     onClick={() => setIsAuthOpen(true)}
-                                    className="rounded-full bg-yellow-400 px-6 py-2 text-sm font-bold text-slate-950 hover:bg-yellow-300 transition-colors"
+                                    className="rounded-full bg-yellow-400 px-6 py-2 text-sm font-bold text-slate-950 hover:bg-yellow-300 transition-colors shadow-[0_0_15px_rgba(250,204,21,0.2)]"
                                 >
                                     Sign In
                                 </button>

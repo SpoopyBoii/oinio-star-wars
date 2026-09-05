@@ -93,6 +93,8 @@ export const Planets: React.FC = () => {
                 isOpen={!!selectedPlanet}
                 onClose={() => setSelectedPlanet(null)}
                 title={selectedPlanet?.name || ''}
+                entityType="planets"
+                entityUrl={selectedPlanet?.url || ''}
                 attributes={selectedPlanet ? getPlanetAttributes(selectedPlanet) : []}
                 relatedLinks={[
                     { category: 'Residents', items: selectedPlanet?.residents.length ? ['Luke Skywalker', 'Leia Organa'] : [] },

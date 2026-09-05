@@ -93,6 +93,8 @@ export const People: React.FC = () => {
                 isOpen={!!selectedPerson}
                 onClose={() => setSelectedPerson(null)}
                 title={selectedPerson?.name || ''}
+                entityType="people"
+                entityUrl={selectedPerson?.url || ''}
                 attributes={selectedPerson ? getPersonAttributes(selectedPerson) : []}
                 relatedLinks={[
                     { category: 'Films', items: selectedPerson?.films.length ? ['A New Hope', 'The Empire Strikes Back'] : [] },

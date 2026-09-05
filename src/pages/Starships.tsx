@@ -93,6 +93,8 @@ export const Starships: React.FC = () => {
                 isOpen={!!selectedStarship}
                 onClose={() => setSelectedStarship(null)}
                 title={selectedStarship?.name || ''}
+                entityType="starships"
+                entityUrl={selectedStarship?.url || ''}
                 attributes={selectedStarship ? getStarshipAttributes(selectedStarship) : []}
                 relatedLinks={[
                     { category: 'Pilots', items: selectedStarship?.pilots.length ? ['Han Solo', 'Chewbacca'] : [] },
