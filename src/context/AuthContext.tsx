@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 interface AuthContextType {
     user: User | null;
     session: Session | null;
-    loading: boolean;
+    isLoading: boolean;
     signOut: () => Promise<void>;
 }
 
@@ -14,21 +14,21 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
     const [session, setSession] = useState<Session | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // Fetch initial session
+        // Check active session on initial load
         supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session);
             setUser(session?.user ?? null);
-            setLoading(false);
+            setIsLoading(false);
         });
 
-        // Listen for auth changes (login, logout, token refresh)
+        // Listen for auth state changes (login, logout, token refresh)
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             setSession(session);
             setUser(session?.user ?? null);
-            setLoading(false);
+            setIsLoading(false);
         });
 
         return () => subscription.unsubscribe();
@@ -38,13 +38,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await supabase.auth.signOut();
     };
 
-    const value = useMemo(
-        () => ({ user, session, loading, signOut }),
-        [user, session, loading]
-    );
-
     return (
-        <AuthContext.Provider value={value}>
+        <AuthContext.Provider value={{ user, session, isLoading, signOut }}>
             {children}
         </AuthContext.Provider>
     );
@@ -52,7 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 export const useAuth = () => {
     const context = useContext(AuthContext);
-    if (!context) {
+    if (context === undefined) {
         throw new Error('useAuth must be used within an AuthProvider');
     }
     return context;
