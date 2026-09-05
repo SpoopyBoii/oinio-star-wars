@@ -23,7 +23,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <AuthProvider>
           <App />
           <Toaster 
-            position="bottom-right"
+            position="top-center"
             toastOptions={{
               style: {
                 background: '#0f172a', // slate-900
