@@ -10,15 +10,19 @@
   font-display: swap;
 }
 
-/* Base background and text defaults for Star Wars theme */
-@layer base {
-  body {
-    @apply bg-slate-950 text-slate-100 antialiased min-h-screen;
-  }
-}
-
 @layer utilities {
   .font-starwars {
     font-family: 'Star Jedi', sans-serif;
+  }
+
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
   }
 }
