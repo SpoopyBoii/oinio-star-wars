@@ -29,14 +29,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                     password,
                 });
                 if (signInError) throw signInError;
-                toast.success('Clearance accepted. Welcome back.');
+                toast.success('Clearance accepted. May the force be with you!');
             } else {
                 const { error: signUpError } = await supabase.auth.signUp({
                     email,
                     password,
                 });
                 if (signUpError) throw signUpError;
-                toast.success('Signature registered. Datapad access granted.');
+                toast.success('Signature registered. Datapad access granted!');
             }
             handleClose();
         } catch (err: any) {

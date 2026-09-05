@@ -16,6 +16,13 @@ interface DetailPanelProps {
     relatedLinks?: { category: string; items: string[] }[];
     entityType: 'people' | 'planets' | 'starships';
     entityUrl: string; // The unique SWAPI URL used as an identifier
+    data?: any;
+    films?: string[];
+    starships?: string[];
+    vehicles?: string[];
+    species?: string[];
+    residents?: string[];
+    pilots?: string[];
 }
 
 export const DetailPanel: React.FC<DetailPanelProps> = ({

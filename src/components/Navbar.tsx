@@ -43,9 +43,12 @@ export const Navbar: React.FC = () => {
                         <div className="flex items-center">
                             {user ? (
                                 <div className="flex items-center space-x-4">
-                                    <span className="text-xs text-slate-400 hidden sm:inline-block truncate max-w-[150px]">
-                                        {user.email}
-                                    </span>
+                                    {/* Updated Greeting Container */}
+                                    <div className="hidden sm:flex items-center space-x-1 text-xs text-slate-400 max-w-[200px] lg:max-w-[300px]">
+                                        <span className="shrink-0">Hello there,</span>
+                                        <span className="truncate text-slate-300">{user.email}</span>
+                                        <span className="shrink-0">!</span>
+                                    </div>
                                     <button
                                         onClick={() => signOut()}
                                         className="flex items-center space-x-2 rounded-full border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
