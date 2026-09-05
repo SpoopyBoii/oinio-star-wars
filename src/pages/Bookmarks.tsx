@@ -1,12 +1,67 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { useBookmarks } from '../hooks/useBookmarks';
 import { useAuth } from '../context/AuthContext';
-import { Bookmark, Trash2, ExternalLink, ShieldAlert } from 'lucide-react';
+import { Bookmark, ShieldAlert, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { BookmarkCard } from '../components/BookmarkCard';
+import { useQueries } from '@tanstack/react-query';
 
 export const Bookmarks: React.FC = () => {
     const { user } = useAuth();
-    const { bookmarks, isLoading, deleteBookmark, isDeleting } = useBookmarks();
+    const { bookmarks, isLoading: isBookmarksLoading, deleteBookmark, isDeleting } = useBookmarks();
 
+    const [searchQuery, setSearchQuery] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 6;
+
+    // Fetch entity details for ALL bookmarks concurrently so we can search by resolved names/attributes
+    const entityQueries = useQueries({
+        queries: bookmarks.map((bookmark) => ({
+            queryKey: ['swapi-entity-search', bookmark.entity_url],
+            queryFn: async () => {
+                const res = await fetch(bookmark.entity_url);
+                if (!res.ok) throw new Error('Failed to fetch entity');
+                const data = await res.json();
+                return {
+                    entityUrl: bookmark.entity_url,
+                    name: data.name || data.title || '',
+                    // Collect other searchable fields if needed (climate, model, etc.)
+                    extraText: Object.values(data).filter((val) => typeof val === 'string').join(' '),
+                };
+            },
+            enabled: !!bookmark.entity_url,
+            staleTime: 1000 * 60 * 30,
+        })),
+    });
+
+    const isEntitiesLoading = entityQueries.some((q) => q.isLoading);
+
+    // Map resolved entity data back to bookmarks for universal filtering
+    const enrichedBookmarks = useMemo(() => {
+        return bookmarks.map((bookmark) => {
+            const resolved = entityQueries.find((q) => q.data?.entityUrl === bookmark.entity_url)?.data;
+            return {
+                ...bookmark,
+                resolvedName: resolved?.name || '',
+                searchableBlob: `${resolved?.name || ''} ${bookmark.notes || ''} ${bookmark.entity_type} ${resolved?.extraText || ''}`.toLowerCase(),
+            };
+        });
+    }, [bookmarks, entityQueries]);
+
+    // Filter bookmarks based on the comprehensive search blob
+    const filteredBookmarks = useMemo(() => {
+        if (!searchQuery.trim()) return enrichedBookmarks;
+        const query = searchQuery.toLowerCase();
+        return enrichedBookmarks.filter((b) => b.searchableBlob.includes(query));
+    }, [enrichedBookmarks, searchQuery]);
+
+    // Paginate results
+    const totalPages = Math.ceil(filteredBookmarks.length / itemsPerPage) || 1;
+    const paginatedBookmarks = useMemo(() => {
+        const start = (currentPage - 1) * itemsPerPage;
+        return filteredBookmarks.slice(start, start + itemsPerPage);
+    }, [filteredBookmarks, currentPage]);
+
+    // Check and display if user is not logged in
     if (!user) {
         return (
             <div className="text-center py-20 bg-slate-900/50 rounded-3xl border border-slate-800 max-w-xl mx-auto mt-10 p-8">
@@ -19,9 +74,11 @@ export const Bookmarks: React.FC = () => {
         );
     }
 
+    // Check and display if user is not logged in
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between mb-4">
+            {/* Header Title Stack */}
+            <div className="space-y-4 mb-2">
                 <div>
                     <h1 className="text-3xl font-starwars text-yellow-400 tracking-widest lowercase">
                         Datapad Archive
@@ -32,77 +89,74 @@ export const Bookmarks: React.FC = () => {
                 </div>
             </div>
 
-            {isLoading ? (
+            {/* Search Bar & Matching Explorer Pagination Bar */}
+            {bookmarks.length > 0 && (
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-2">
+                    {/* Search Bar */}
+                    <div className="relative w-full md:w-80">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => {
+                                setSearchQuery(e.target.value);
+                                setCurrentPage(1);
+                            }}
+                            placeholder="Search..."
+                            className="w-full rounded-full bg-slate-900 border border-slate-800 pl-11 pr-4 py-3 text-sm text-slate-100 focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400 transition-colors"
+                        />
+                    </div>
+
+                    {/* Matching Explorer Pagination Layout */}
+                    <div className="flex items-center space-x-6 self-end md:self-auto text-sm text-slate-400">
+                        <span>Total: {filteredBookmarks.length}</span>
+                        <div className="flex items-center space-x-3">
+                            <button
+                                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                                disabled={currentPage === 1}
+                                className="flex items-center space-x-1 px-4 py-2 rounded-full border border-slate-700 bg-slate-800/60 text-xs font-semibold text-slate-200 hover:bg-slate-700 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                            >
+                                <ChevronLeft size={14} />
+                                <span>Prev</span>
+                            </button>
+
+                            <span className="text-xs font-medium text-slate-300">
+                                Page {currentPage}
+                            </span>
+
+                            <button
+                                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                                disabled={currentPage === totalPages || totalPages === 0}
+                                className="flex items-center space-x-1 px-4 py-2 rounded-full border border-slate-700 bg-slate-800/60 text-xs font-semibold text-slate-200 hover:bg-slate-700 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                            >
+                                <span>Next</span>
+                                <ChevronRight size={14} />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {isBookmarksLoading || isEntitiesLoading ? (
                 <div className="text-center py-20 text-slate-500">Decrypting archives...</div>
-            ) : bookmarks.length === 0 ? (
+            ) : filteredBookmarks.length === 0 ? (
                 <div className="text-center py-20 text-slate-500 bg-slate-900/50 rounded-3xl border border-slate-800">
                     <Bookmark size={40} className="mx-auto text-slate-600 mb-3" />
-                    <p className="text-base font-medium text-slate-300">Your Datapad is currently empty.</p>
+                    <p className="text-base font-medium text-slate-300">
+                        {searchQuery ? 'No matching records found in archive.' : 'Your Datapad is currently empty.'}
+                    </p>
                     <p className="text-xs text-slate-500 mt-1">Explore characters, planets, or starships and click the star icon to save records.</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {bookmarks.map((bookmark) => {
-                        const displayNotes = bookmark.notes ? (
-                            <p className="text-sm text-slate-200 whitespace-pre-wrap break-words">
-                                {bookmark.notes}
-                            </p>
-                        ) : (
-                            <span className="italic text-slate-600 text-sm">No notes recorded.</span>
-                        );
-
-                        const formattedDate = bookmark.created_at
-                            ? new Date(bookmark.created_at).toLocaleDateString()
-                            : 'Recent';
-
-                        return (
-                            <div
-                                key={bookmark.id || bookmark.entity_url}
-                                className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-lg flex flex-col justify-between hover:border-slate-700 transition-colors"
-                            >
-                                <div>
-                                    <div className="flex items-center justify-between mb-3">
-                                        <span className="text-xs font-bold uppercase tracking-wider text-yellow-400 bg-yellow-400/10 px-3 py-1 rounded-full border border-yellow-400/20">
-                                            {bookmark.entity_type}
-                                        </span>
-                                        <button
-                                            onClick={() => deleteBookmark(bookmark.entity_url)}
-                                            disabled={isDeleting}
-                                            className="text-slate-500 hover:text-red-400 transition-colors p-1"
-                                            aria-label="Remove bookmark"
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
-                                    </div>
-
-                                    <div className="mb-4">
-                                        <span className="block text-xs text-slate-500 mb-1">Entity Source</span>
-                                        <a
-                                            href={bookmark.entity_url}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="text-xs text-slate-300 hover:text-yellow-400 flex items-center space-x-1 truncate transition-colors"
-                                        >
-                                            <span className="truncate">{bookmark.entity_url}</span>
-                                            <ExternalLink size={12} className="shrink-0" />
-                                        </a>
-                                    </div>
-
-                                    <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800/80 mb-4">
-                                        <span className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-                                            Encrypted Notes
-                                        </span>
-                                        {displayNotes}
-                                    </div>
-                                </div>
-
-                                <div className="pt-3 border-t border-slate-800/80 text-xs text-slate-500 flex justify-between items-center">
-                                    <span>Saved record</span>
-                                    <span>{formattedDate}</span>
-                                </div>
-                            </div>
-                        );
-                    })}
+                    {paginatedBookmarks.map((bookmark) => (
+                        <BookmarkCard
+                            key={bookmark.id || bookmark.entity_url}
+                            bookmark={bookmark}
+                            onDelete={deleteBookmark}
+                            isDeleting={isDeleting}
+                        />
+                    ))}
                 </div>
             )}
         </div>
