@@ -6,6 +6,7 @@ export interface BookmarkRecord {
     entity_type: 'people' | 'planets' | 'starships';
     entity_url: string;
     notes: string;
+    created_at?: string;
 }
 
 // Fetch all saved records for the logged-in user

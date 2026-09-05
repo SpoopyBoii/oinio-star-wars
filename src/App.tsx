@@ -3,6 +3,7 @@ import { Navbar } from './components/Navbar';
 import { People } from './pages/People';
 import { Planets } from './pages/Planets';
 import { Starships } from './pages/Starships';
+import { Bookmarks } from './pages/Bookmarks';
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
           <Route path="/" element={<People />} />
           <Route path="/planets" element={<Planets />} />
           <Route path="/starships" element={<Starships />} />
+          <Route path="/datapad" element={<Bookmarks />} />
         </Routes>
       </main>
     </div>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Users, Globe, Rocket, LogOut } from 'lucide-react';
+import { Menu, X, Users, Globe, Rocket, LogOut, Bookmark } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { AuthModal } from './AuthModal';
 
@@ -14,6 +14,7 @@ export const Navbar: React.FC = () => {
         { name: 'People', path: '/', icon: <Users size={20} /> },
         { name: 'Planets', path: '/planets', icon: <Globe size={20} /> },
         { name: 'Starships', path: '/starships', icon: <Rocket size={20} /> },
+        { name: 'Datapad', path: '/datapad', icon: <Bookmark size={20} /> },
     ];
 
     return (
