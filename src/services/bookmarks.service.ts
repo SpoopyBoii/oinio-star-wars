@@ -6,6 +6,7 @@ export interface BookmarkRecord {
     entity_type: 'people' | 'planets' | 'starships';
     entity_url: string;
     notes: string;
+    rating?: number;
     created_at?: string;
 }
 
@@ -43,4 +44,17 @@ export const deleteBookmark = async (entityUrl: string) => {
 
     if (error) throw error;
     return true;
+};
+
+// Update only the rating for a specific record
+export const updateBookmarkRating = async (entityUrl: string, rating: number) => {
+    const { data, error } = await supabase
+        .from('user_bookmarks')
+        .update({ rating })
+        .eq('entity_url', entityUrl)
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
 };

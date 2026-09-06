@@ -8,7 +8,7 @@ interface Attribute {
     value: string | number;
 }
 
-interface DetailPanelProps {
+export interface DetailPanelProps {
     isOpen: boolean;
     onClose: () => void;
     title: string;
@@ -23,6 +23,7 @@ interface DetailPanelProps {
     species?: string[];
     residents?: string[];
     pilots?: string[];
+    rating?: number;
 }
 
 export const DetailPanel: React.FC<DetailPanelProps> = ({
@@ -38,17 +39,20 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
     const { bookmarks, saveBookmark, deleteBookmark, isSaving, isDeleting } = useBookmarks();
 
     const [notes, setNotes] = useState('');
+    const [localRating, setLocalRating] = useState(0);
 
     // Find if this specific entity is already saved in the database for the active user
     const currentBookmark = bookmarks.find(b => b.entity_url === entityUrl);
     const isBookmarked = !!currentBookmark;
 
-    // Sync local notes state with the database record
+    // Sync local notes and rating state with the database record
     useEffect(() => {
         if (currentBookmark) {
             setNotes(currentBookmark.notes || '');
+            setLocalRating(currentBookmark.rating || 0);
         } else {
             setNotes('');
+            setLocalRating(0);
         }
     }, [currentBookmark, isOpen]);
 
@@ -61,6 +65,7 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
                     entity_type: entityType,
                     entity_url: entityUrl,
                     notes: notes,
+                    rating: localRating,
                 });
             }
         } catch (error) {
@@ -74,9 +79,10 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
                 entity_type: entityType,
                 entity_url: entityUrl,
                 notes: notes,
+                rating: localRating,
             });
         } catch (error) {
-            console.error('Failed to save notes', error);
+            console.error('Failed to save record', error);
         }
     };
 
@@ -125,7 +131,6 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
 
                 {/* Scrollable Body */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-8 no-scrollbar">
-
                     {/* Attributes Grid */}
                     <div>
                         <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">
@@ -166,19 +171,52 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({
                         </div>
                     ))}
 
-                    {/* Personal Notes Area */}
-                    {/* ONLY SHOW NOTES IF LOGGED IN */}
+                    {/* Personal Notes & Rating Area */}
+                    {/* ONLY SHOW IF LOGGED IN */}
                     {user && (
-                        <div>
-                            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
-                                Encrypted Notes
-                            </h3>
-                            <textarea
-                                value={notes}
-                                onChange={(e) => setNotes(e.target.value)}
-                                placeholder="Record your observations..."
-                                className="w-full h-32 rounded-2xl bg-slate-950 border border-slate-700 p-4 text-sm text-slate-200 placeholder:text-slate-600 focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400 transition-colors resize-none"
-                            />
+                        <div className="space-y-6">
+                            <div>
+                                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+                                    Encrypted Notes
+                                </h3>
+                                <textarea
+                                    value={notes}
+                                    onChange={(e) => setNotes(e.target.value)}
+                                    placeholder="Record your observations..."
+                                    className="w-full h-32 rounded-2xl bg-slate-950 border border-slate-700 p-4 text-sm text-slate-200 placeholder:text-slate-600 focus:border-yellow-400 focus:outline-none focus:ring-1 focus:ring-yellow-400 transition-colors resize-none"
+                                />
+                            </div>
+
+                            <div>
+                                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+                                    Rating
+                                </h3>
+                                <div className="flex items-center space-x-1">
+                                    {[1, 2, 3, 4, 5].map((star) => {
+                                        const isFilled = localRating >= star;
+                                        return (
+                                            <button
+                                                key={star}
+                                                onClick={() => setLocalRating(localRating === star ? 0 : star)}
+                                                className={`p-1 transition-all hover:scale-110 ${isFilled
+                                                        ? 'text-yellow-400'
+                                                        : 'text-slate-700 hover:text-yellow-400/50'
+                                                    }`}
+                                                aria-label={`Rate ${star} stars`}
+                                            >
+                                                <Star
+                                                    size={22}
+                                                    fill={isFilled ? 'currentColor' : 'none'}
+                                                    strokeWidth={isFilled ? 0 : 2}
+                                                />
+                                            </button>
+                                        );
+                                    })}
+                                    <span className="text-xs text-slate-500 ml-3 font-medium">
+                                        {localRating ? `${localRating} / 5` : 'Unrated'}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>

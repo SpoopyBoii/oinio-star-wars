@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Trash2, ExternalLink, Eye } from 'lucide-react';
+import { Trash2, ExternalLink, Eye, Star } from 'lucide-react';
 import { DetailPanel } from './DetailPanel';
 import type { BookmarkRecord } from '../services/bookmarks.service';
 
@@ -8,9 +8,10 @@ interface BookmarkCardProps {
   bookmark: BookmarkRecord;
   onDelete: (url: string) => void;
   isDeleting: boolean;
+  onUpdateRating: (url: string, rating: number) => void;
 }
 
-export const BookmarkCard: React.FC<BookmarkCardProps> = ({ bookmark, onDelete, isDeleting }) => {
+export const BookmarkCard: React.FC<BookmarkCardProps> = ({ bookmark, onDelete, isDeleting, onUpdateRating }) => {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   // Fetch the specific entity details from SWAPI
@@ -29,7 +30,7 @@ export const BookmarkCard: React.FC<BookmarkCardProps> = ({ bookmark, onDelete, 
   // Fully mapped attributes to match the main explorer pages
   const getAttributes = () => {
     if (!entityData) return [];
-    
+
     switch (bookmark.entity_type) {
       case 'people':
         return [
@@ -75,8 +76,8 @@ export const BookmarkCard: React.FC<BookmarkCardProps> = ({ bookmark, onDelete, 
     <span className="italic text-slate-600 text-sm">No notes recorded.</span>
   );
 
-  const formattedDate = bookmark.created_at 
-    ? new Date(bookmark.created_at).toLocaleDateString() 
+  const formattedDate = bookmark.created_at
+    ? new Date(bookmark.created_at).toLocaleDateString()
     : 'Recent';
 
   return (
@@ -112,6 +113,35 @@ export const BookmarkCard: React.FC<BookmarkCardProps> = ({ bookmark, onDelete, 
               <span className="truncate">{bookmark.entity_url}</span>
               <ExternalLink size={12} className="shrink-0" />
             </a>
+          </div>
+
+          {/* Interactive 5-Star Rating */}
+          <div className="mb-4 flex items-center space-x-1">
+            {[1, 2, 3, 4, 5].map((star) => {
+              const currentRating = bookmark.rating || 0;
+              const isFilled = currentRating >= star;
+
+              return (
+                <button
+                  key={star}
+                  onClick={() => onUpdateRating(bookmark.entity_url, currentRating === star ? 0 : star)}
+                  className={`p-1 transition-all hover:scale-110 ${isFilled
+                      ? 'text-yellow-400'
+                      : 'text-slate-700 hover:text-yellow-400/50'
+                    }`}
+                  aria-label={`Rate ${star} stars`}
+                >
+                  <Star
+                    size={18}
+                    fill={isFilled ? 'currentColor' : 'none'}
+                    strokeWidth={isFilled ? 0 : 2}
+                  />
+                </button>
+              );
+            })}
+            <span className="text-xs text-slate-500 ml-2">
+              {bookmark.rating ? `${bookmark.rating} / 5` : 'Unrated'}
+            </span>
           </div>
 
           <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800/80 mb-4">

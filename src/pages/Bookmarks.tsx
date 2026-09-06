@@ -7,7 +7,7 @@ import { useQueries } from '@tanstack/react-query';
 
 export const Bookmarks: React.FC = () => {
     const { user } = useAuth();
-    const { bookmarks, isLoading: isBookmarksLoading, deleteBookmark, isDeleting } = useBookmarks();
+    const { bookmarks, isLoading: isBookmarksLoading, deleteBookmark, isDeleting, updateRating } = useBookmarks();
 
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
@@ -61,6 +61,39 @@ export const Bookmarks: React.FC = () => {
         return filteredBookmarks.slice(start, start + itemsPerPage);
     }, [filteredBookmarks, currentPage]);
 
+    // Extracted rendering logic to resolve SonarLint warning (typescript:S3358)
+    const renderContent = () => {
+        if (isBookmarksLoading || isEntitiesLoading) {
+            return <div className="text-center py-20 text-slate-500">Decrypting archives...</div>;
+        }
+
+        if (filteredBookmarks.length === 0) {
+            return (
+                <div className="text-center py-20 text-slate-500 bg-slate-900/50 rounded-3xl border border-slate-800">
+                    <Bookmark size={40} className="mx-auto text-slate-600 mb-3" />
+                    <p className="text-base font-medium text-slate-300">
+                        {searchQuery ? 'No matching records found in archive.' : 'Your Datapad is currently empty.'}
+                    </p>
+                    <p className="text-xs text-slate-500 mt-1">Explore characters, planets, or starships and click the star icon to save records.</p>
+                </div>
+            );
+        }
+
+        return (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {paginatedBookmarks.map((bookmark) => (
+                    <BookmarkCard
+                        key={bookmark.id || bookmark.entity_url}
+                        bookmark={bookmark}
+                        onDelete={deleteBookmark}
+                        isDeleting={isDeleting}
+                        onUpdateRating={updateRating}
+                    />
+                ))}
+            </div>
+        );
+    };
+
     // Check and display if user is not logged in
     if (!user) {
         return (
@@ -74,7 +107,6 @@ export const Bookmarks: React.FC = () => {
         );
     }
 
-    // Check and display if user is not logged in
     return (
         <div className="space-y-6">
             {/* Header Title Stack */}
@@ -137,28 +169,8 @@ export const Bookmarks: React.FC = () => {
                 </div>
             )}
 
-            {isBookmarksLoading || isEntitiesLoading ? (
-                <div className="text-center py-20 text-slate-500">Decrypting archives...</div>
-            ) : filteredBookmarks.length === 0 ? (
-                <div className="text-center py-20 text-slate-500 bg-slate-900/50 rounded-3xl border border-slate-800">
-                    <Bookmark size={40} className="mx-auto text-slate-600 mb-3" />
-                    <p className="text-base font-medium text-slate-300">
-                        {searchQuery ? 'No matching records found in archive.' : 'Your Datapad is currently empty.'}
-                    </p>
-                    <p className="text-xs text-slate-500 mt-1">Explore characters, planets, or starships and click the star icon to save records.</p>
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {paginatedBookmarks.map((bookmark) => (
-                        <BookmarkCard
-                            key={bookmark.id || bookmark.entity_url}
-                            bookmark={bookmark}
-                            onDelete={deleteBookmark}
-                            isDeleting={isDeleting}
-                        />
-                    ))}
-                </div>
-            )}
+            {/* Main Content Render */}
+            {renderContent()}
         </div>
     );
 };

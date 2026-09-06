@@ -1,7 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getUserBookmarks, saveBookmark, deleteBookmark } from '../services/bookmarks.service';
+import { getUserBookmarks, saveBookmark, deleteBookmark, updateBookmarkRating } from '../services/bookmarks.service';
 import type { BookmarkRecord } from '../services/bookmarks.service';
 import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 
 export const useBookmarks = () => {
     const { user } = useAuth();
@@ -32,6 +33,17 @@ export const useBookmarks = () => {
         },
     });
 
+    const updateRatingMutation = useMutation({
+        mutationFn: ({ url, rating }: { url: string; rating: number }) => updateBookmarkRating(url, rating),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
+        },
+        onError: (error) => {
+            console.error('Rating update failed:', error);
+            toast.error('Failed to update rating.');
+        }
+    });
+
     return {
         bookmarks: bookmarksQuery.data || [],
         isLoading: bookmarksQuery.isLoading,
@@ -39,5 +51,7 @@ export const useBookmarks = () => {
         deleteBookmark: deleteMutation.mutateAsync,
         isSaving: saveMutation.isPending,
         isDeleting: deleteMutation.isPending,
+        updateRating: (url: string, rating: number) => updateRatingMutation.mutate({ url, rating }),
+        isUpdatingRating: updateRatingMutation.isPending
     };
 };
