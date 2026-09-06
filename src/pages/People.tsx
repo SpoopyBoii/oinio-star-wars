@@ -96,10 +96,10 @@ export const People: React.FC = () => {
                 entityType="people"
                 entityUrl={selectedPerson?.url || ''}
                 attributes={selectedPerson ? getPersonAttributes(selectedPerson) : []}
-                relatedLinks={[
-                    { category: 'Films', items: selectedPerson?.films.length ? ['A New Hope', 'The Empire Strikes Back'] : [] },
-                    { category: 'Starships', items: selectedPerson?.starships.length ? ['X-wing', 'Imperial shuttle'] : [] },
-                ]}
+                films={selectedPerson?.films}
+                starships={selectedPerson?.starships}
+                vehicles={selectedPerson?.vehicles}
+                species={selectedPerson?.species}
             />
         </>
     );

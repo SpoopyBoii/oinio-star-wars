@@ -96,10 +96,8 @@ export const Planets: React.FC = () => {
                 entityType="planets"
                 entityUrl={selectedPlanet?.url || ''}
                 attributes={selectedPlanet ? getPlanetAttributes(selectedPlanet) : []}
-                relatedLinks={[
-                    { category: 'Residents', items: selectedPlanet?.residents.length ? ['Luke Skywalker', 'Leia Organa'] : [] },
-                    { category: 'Films', items: selectedPlanet?.films.length ? ['A New Hope', 'Return of the Jedi'] : [] },
-                ]}
+                residents={selectedPlanet?.residents}
+                films={selectedPlanet?.films}
             />
         </>
     );

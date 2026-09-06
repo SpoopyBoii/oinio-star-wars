@@ -96,10 +96,8 @@ export const Starships: React.FC = () => {
                 entityType="starships"
                 entityUrl={selectedStarship?.url || ''}
                 attributes={selectedStarship ? getStarshipAttributes(selectedStarship) : []}
-                relatedLinks={[
-                    { category: 'Pilots', items: selectedStarship?.pilots.length ? ['Han Solo', 'Chewbacca'] : [] },
-                    { category: 'Films', items: selectedStarship?.films.length ? ['A New Hope', 'The Empire Strikes Back'] : [] },
-                ]}
+                pilots={selectedStarship?.pilots}
+                films={selectedStarship?.films}
             />
         </>
     );
